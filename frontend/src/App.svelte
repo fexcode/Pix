@@ -1,13 +1,25 @@
 <script>
-  // @ts-ignore
   import codemirror from "codemirror";
   import { onMount } from "svelte";
   import {
     CheckPythonAvailable,
-    // @ts-ignore
     RunPythonCode,
   } from "../wailsjs/go/main/App.js";
+  import probs from "./probs.js";
+
   let editor;
+  let probNumber = 1;
+
+  let outputtext = "";
+  let oc = "white";
+  let runState = "运行";
+
+  $: recentProb = probs[probNumber - 1];
+  $: probTitle = recentProb.name;
+  $: problem = recentProb.content; // 显示的题目内容
+
+  console.log("prob:", recentProb);
+
   onMount(() => {
     // 检测python是否可用
     CheckPythonAvailable().then((available) => {
@@ -40,11 +52,10 @@
     });
     // @ts-ignore
     editor.setSize("100%", "100%");
-  });
 
-  let outputtext = "";
-  $: oc = "white";
-  $: runState = "运行";
+    // @ts-ignore
+    editor.setValue(recentProb.io.preset);
+  });
 
   async function btnClicked() {
     runState = "运行中...";
@@ -69,7 +80,25 @@
       }
     });
 
-    runState = "再运行一次";
+    if (runState === "运行中...") {
+      runState = "运行";
+    }
+
+    if (outputtext.trim() == recentProb.io.output.trim()) {
+      alert("恭喜你，运行成功！");
+      runState = "运行";
+      nextProb();
+    } else {
+      runState = "不对哦, 再试试吧！";
+    }
+  }
+  function nextProb() {
+    if (probNumber < probs.length) {
+      probNumber++;
+      editor.setValue(recentProb.io.preset);
+    } else {
+      alert("恭喜你，全部题目都做完了！");
+    }
   }
 </script>
 
@@ -84,7 +113,10 @@
       <h2>输出：</h2>
       <div class="output-content" style="color: {oc}">{outputtext}</div>
     </div>
-    <div class="div3 prob">..................</div>
+    <div class="div3 prob">
+      <h1>{probTitle}</h1>
+      <p>{problem}</p>
+    </div>
   </div>
 </main>
 
@@ -122,8 +154,19 @@
     padding: 10px;
     background-color: rgb(39, 40, 34);
     color: white;
-    font-size: 1.2em;
     border-bottom: #8d929b90 1px solid;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Oxygen,
+      Ubuntu,
+      Cantarell,
+      "Open Sans",
+      "Helvetica Neue",
+      sans-serif;
   }
   .output {
     padding: 10px;
