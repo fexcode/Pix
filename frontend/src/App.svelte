@@ -62,39 +62,62 @@
     console.log("btnClicked");
     console.log("code:", editor.getValue());
 
-    await RunPythonCode(editor.getValue()).then((result) => {
-      console.log("Result: ", result);
-      let strresult = result.toString();
-      // 换行符替换成<br>
-      outputtext = strresult;
-
-      if (
-        strresult.includes("Traceback (most recent call last):") ||
-        (strresult.includes("SyntaxError:") &&
-          strresult.includes("File ") &&
-          strresult.includes("line "))
-      ) {
-        oc = "#ff6969e5"; // 红色
+    await checkCode().then((result) => {
+      if (result.status) {
+        alert("恭喜你，运行成功！");
+        runState = "运行";
+        nextProb();
       } else {
-        oc = "white";
+        console.log("checkCode result:", result);
+
+        RunPythonCode(editor.getValue()).then((result) => {
+          console.log("RunPythonCode result:", result);
+          outputtext = result.toString();
+          oc = "white";
+        });
+
+        runState = "不对哦, 再试试吧！";
       }
     });
-
-    if (runState === "运行中...") {
-      runState = "运行";
-    }
-
-    if (outputtext.trim() == recentProb.io.output.trim()) {
-      alert("恭喜你，运行成功！");
-      runState = "运行";
-      nextProb();
-    } else {
-      runState = "不对哦, 再试试吧！";
-    }
   }
+
+  async function checkCode() {
+    let testPromises = recentProb.io.tests.map(async (test) => {
+      let input = test.input + editor.getValue().split("===分割线,勿删===")[1];
+      console.log("input:", input);
+
+      let outputs = test.outputs;
+      let result = await RunPythonCode(input).then((result) => {
+        // console.log("Result: ", result);
+        return result.toString();
+      });
+      return outputs.some((output) => {
+        console.log("output:", output, "result:", result);
+
+        return result.trim() === output.trim();
+      });
+    });
+
+    let results = await Promise.all(testPromises);
+    console.log("checkCode results:", results);
+
+    let toreturn = {
+      status: results.every((item) => item === true),
+      results,
+    };
+    return toreturn;
+  }
+
   function nextProb() {
     if (probNumber < probs.length) {
       probNumber++;
+      recentProb = probs[probNumber - 1];
+      probTitle = recentProb.name;
+      problem = recentProb.content; // 显示的题目内容
+      outputtext = "";
+      oc = "white";
+      runState = "运行";
+      // @ts-ignore
       editor.setValue(recentProb.io.preset);
     } else {
       alert("恭喜你，全部题目都做完了！");
