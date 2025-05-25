@@ -43,6 +43,7 @@
   });
 
   let outputtext = "";
+  $: oc = "white";
   $: runState = "运行";
 
   async function btnClicked() {
@@ -55,6 +56,17 @@
       let strresult = result.toString();
       // 换行符替换成<br>
       outputtext = strresult;
+
+      if (
+        strresult.includes("Traceback (most recent call last):") ||
+        (strresult.includes("SyntaxError:") &&
+          strresult.includes("File ") &&
+          strresult.includes("line "))
+      ) {
+        oc = "#ff6969e5"; // 红色
+      } else {
+        oc = "white";
+      }
     });
 
     runState = "再运行一次";
@@ -70,13 +82,13 @@
     <div class="div2 output">
       <button on:click={btnClicked}>{runState}</button>
       <h2>输出：</h2>
-      <div class="output-content">{outputtext}</div>
+      <div class="output-content" style="color: {oc}">{outputtext}</div>
     </div>
     <div class="div3 prob">..................</div>
   </div>
 </main>
 
-<style lang="scss" type="text/scss">
+<style>
   .parent {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -108,15 +120,18 @@
 
   .prob {
     padding: 10px;
-    background-color: #3b3b3b;
+    background-color: rgb(39, 40, 34);
     color: white;
+    font-size: 1.2em;
+    border-bottom: #8d929b90 1px solid;
   }
   .output {
     padding: 10px;
-    color: white;
-    background-color: #313133;
-    overflow-y: scroll;
+    /*color: white;*/
+    background-color: rgb(39, 40, 34);
+    overflow-y: auto;
     scrollbar-width: thin;
+    border-left: 1px solid #8d929b69;
 
     & .output-content {
       margin-top: 10px;
@@ -136,6 +151,7 @@
     & h2 {
       border-bottom: 1px solid #8d929b;
       margin: 2px;
+      color: white;
     }
   }
 </style>
