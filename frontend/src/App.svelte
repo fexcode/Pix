@@ -9,6 +9,7 @@
     LoadUserData,
   } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
+
   // import probs from "./probs.js";
   let probs = [
     {
@@ -113,8 +114,9 @@
       } else {
         console.log("LoadUserData result:", result);
         if (result) {
-          probNumber = result.max_probs + 1;
+          probNumber = result.max_probs;
           console.log("probNumber:", probNumber);
+          nextProb(); // 以更新其它数据
         } else {
           SaveUserData(
             new main.UserData({
