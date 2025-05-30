@@ -4,8 +4,31 @@
   import {
     CheckPythonAvailable,
     RunPythonCode,
+    FetchPorbsFromServer,
+    SaveUserData,
+    LoadUserData,
   } from "../wailsjs/go/main/App.js";
-  import probs from "./probs.js";
+  import { main } from "../wailsjs/go/models";
+  // import probs from "./probs.js";
+  let probs = [
+    {
+      id: 0,
+      name: "请稍等,正在获取题目信息...",
+      content:
+        'Hi! 欢迎来到 Pix! 尝试输入一串 Python 代码, 以在控制台输出 "Hello, World!" 字符串吧!',
+      io: {
+        preset: "#===分割线,勿删===\n#在这里输入代码, 请不要改动上方的代码\n",
+        // "input": "",
+        // output: "Hello, World!\n"
+        tests: [
+          {
+            input: "",
+            outputs: ["Hello, World!\n"],
+          },
+        ],
+      },
+    },
+  ];
 
   let editor;
   let probNumber = 1;
@@ -55,6 +78,57 @@
 
     // @ts-ignore
     editor.setValue(recentProb.io.preset);
+
+    FetchPorbsFromServer().then((result) => {
+      if (typeof result === "boolean") {
+        console.log("FetchPorbsFromServer result is boolean:", result);
+        if (result) {
+          // 这里处理 success 为 true 的情况
+        } else {
+          // 这里处理 success 为 false 的情况
+        }
+      } else {
+        console.log("FetchPorbsFromServer result:", result);
+        if (result) {
+          probs = result;
+        }
+      }
+    });
+
+    LoadUserData().then((result) => {
+      if (typeof result === "boolean") {
+        console.log("LoadUserData result is boolean:", result);
+        if (!result) {
+          SaveUserData(
+            new main.UserData({
+              max_probs: 0,
+            })
+          ).then((result) => {
+            console.log("SaveUserData result:", result);
+            if (!result) {
+              alert("你的用户信息加载失败！");
+            }
+          });
+        }
+      } else {
+        console.log("LoadUserData result:", result);
+        if (result) {
+          probNumber = result.max_probs + 1;
+          console.log("probNumber:", probNumber);
+        } else {
+          SaveUserData(
+            new main.UserData({
+              max_probs: 0,
+            })
+          ).then((result) => {
+            console.log("SaveUserData result:", result);
+            if (!result) {
+              alert("你的用户信息加载失败！");
+            }
+          });
+        }
+      }
+    });
   });
 
   async function btnClicked() {
@@ -122,6 +196,16 @@
     } else {
       alert("恭喜你，全部题目都做完了！");
     }
+    SaveUserData(
+      new main.UserData({
+        max_probs: probNumber - 1,
+      })
+    ).then((result) => {
+      console.log("SaveUserData result:", result);
+      if (!result) {
+        alert("你的用户信息保存失败！");
+      }
+    });
   }
 </script>
 

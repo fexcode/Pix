@@ -6,10 +6,22 @@ export function CheckPythonAvailable() {
   return window['go']['main']['App']['CheckPythonAvailable']();
 }
 
+export function FetchPorbsFromServer() {
+  return window['go']['main']['App']['FetchPorbsFromServer']();
+}
+
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function LoadUserData() {
+  return window['go']['main']['App']['LoadUserData']();
+}
+
 export function RunPythonCode(arg1) {
   return window['go']['main']['App']['RunPythonCode'](arg1);
+}
+
+export function SaveUserData(arg1) {
+  return window['go']['main']['App']['SaveUserData'](arg1);
 }
